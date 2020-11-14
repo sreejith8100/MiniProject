@@ -3,113 +3,120 @@
 #include <math.h>
 #include "pbPlots.h"
 #include "supportLib.h"
-float f(float x1, float x2);
-float gOn(float x1);
-float gOff(float x1);
-float R, L, C, d, frequency, Vin, h = 0.00001;//Input Data
+double f(double x1, double x2);
+double gOn(double x1);
+double gOff(double x1);
+double R, L, C, d, frequency, Vin, h = 0.00001;//Input Data
 
-float f(float x1,float x2){
-    float fx;
+double f(double x1,double x2){
+    double fx;
     fx = (x2/C) - (x1/(C*R));
     return fx;
 }
 
-float gOn(float x1){
-    float gx;
+double gOn(double x1){
+    double gx;
     gx = (Vin - x1)/L;
     return gx;
 }
 
-float gOff(float x1){
-    float gx;
+double gOff(double x1){
+    double gx;
     gx = -(x1)/L;
     return gx;
 }
 
 int main(){
-	float time, T, timeStart = 0, timeEnd = 0.01; //the graph to be plotted is from 0 msec to 10 msec. Change this value to plot graphs for different time intervals
-	int tempVar, count = 1, cycleNumber = 1;
+	double time, T, timeStart = 0, timeEnd = 0.01; //the graph to be plotted is from 0 msec to 10 msec. Change the value of timeEnd to plot graphs for different time intervals
+	int tempVar, count = 1, cycleNumber = 0;
+	int n = (timeEnd/h) + 1;  //The number of steps to be calculaed
+	
 	//Variables for Runge-Kutta Method.
-	float x1, x2, f1, f2, f3, f4, g1, g2, g3, g4;
-	double iL [1001] = {};//Array of the inductor current values to be plotted.
-	double Vc [1001] = {};//Capacitor voltage values.
-	double t [1001] = {} ;//Time values (for time axis).
+	double x1, x2, f1, f2, f3, f4, g1, g2, g3, g4;
+	double iL [n]; //Array of the inductor current values to be plotted.
+	double Vc [n]; //Capacitor voltage values.
+	double t [n]; //Time values (for time axis).
+	
+	//Asking the user to enter the values.
 	printf("Enter the following data\n");
 	printf("Input voltage, Vin: ");
-	scanf("%f", &Vin);
+	scanf("%lf", &Vin);
 	printf("Load Resistance, R: ");
-	scanf("%f", &R);
+	scanf("%lf", &R);
 	printf("Inductance, L: ");
-	scanf("%f", &L);
+	scanf("%lf", &L);
 	printf("Capacitance, C: ");
-	scanf("%f", &C);
+	scanf("%lf", &C);
 	printf("Duty ratio, d: ");
-	scanf("%f", &d);
+	scanf("%lf", &d);
 	printf("Frequency, f: ");
-	scanf("%f", &frequency);
+	scanf("%lf", &frequency);
 	T = 1.0/frequency;
+	
+	//Calculating the initial values of Vc and iL.
 	x1 = (d*Vin);
 	x2 = (x1/R)-(x1*(1-d)/(2.0*L*frequency));
 	Vc [0] = x1;
 	iL [0] = x2;
+	t[0] = 0;
 	time = timeStart;
 
 	while(time <= timeEnd){
         tempVar = 0;
-        while(tempVar <= T/h){
+        while(tempVar < T/h){
             //When the switch is ON.
-            if(time < cycleNumber*d*T){
+            if(time <= (cycleNumber*T) + d*T){
                 f1 = h*f(x1, x2);
-                f2 = h*f((x1 + f1/2), (x2 + g1/2));
-                f3 = h*f((x1 + f2/2), (x2 + g2/2));
-                f4 = h*f((x1 + f3), (x2 + g3));
                 g1 = h*gOn(x1);
+                f2 = h*f((x1 + f1/2), (x2 + g1/2));
                 g2 = h*gOn(x1 + f1/2);
+                f3 = h*f((x1 + f2/2), (x2 + g2/2));
                 g3 = h*gOn(x1 + f2/2);
+                f4 = h*f((x1 + f3), (x2 + g3));
                 g4 = h*gOn(x1 + f3);
-                x1 += (1/6)*(f1 + 2*f2 + 2*f3 +f4);
-                x2 += (1/6)*(g1 +2*g2 + 2*g3 +g4);
+                x1 += (1.0/6.0)*(f1 + 2*f2 + 2*f3 + f4);
+                x2 += (1.0/6.0)*(g1 + 2*g2 + 2*g3 + g4);
             }
             //When the switch is OFF.
             else{
                 f1 = h*f(x1, x2);
-                f2 = h*f((x1 + f1/2), (x2 + g1/2));
-                f3 = h*f((x1 + f2/2), (x2 + g2/2));
-                f4 = h*f((x1 + f3), (x2 + g3));
                 g1 = h*gOff(x1);
+                f2 = h*f((x1 + f1/2), (x2 + g1/2));
                 g2 = h*gOff(x1 + f1/2);
+                f3 = h*f((x1 + f2/2), (x2 + g2/2));
                 g3 = h*gOff(x1 + f2/2);
+                f4 = h*f((x1 + f3), (x2 + g3));
                 g4 = h*gOff(x1 + f3);
-                x1 += (1/6)*(f1 + 2*f2 + 2*f3 +f4);
-                x2 += (1/6)*(g1 +2*g2 + 2*g3 +g4);
+                x1 += (1.0/6.0)*(f1 + 2*f2 + 2*f3 + f4);
+                x2 += (1.0/6.0)*(g1 + 2*g2 + 2*g3 + g4);
             }
-            iL[count] = x1;
-            Vc[count] = x2;
-            t[count] = time*1000;
-            count +=1;
+            iL[count] = floor(10000*x2)/10000;  //Rounding off the values upto 4 decimal places.
+            Vc[count] = floor(10000*x1)/10000;
             time += h;
-            if(time > timeEnd){
+            t[count] = time*1000;
+            count += 1;
+            
+	    //Checking if the time has reached its end.
+	    if(time > timeEnd){
                 break;
             }
-            tempVar+=1;
+            tempVar += 1;
         }
         cycleNumber += 1;
 	}
 
     RGBABitmapImageReference *canvasReference1 = CreateRGBABitmapImageReference();
-	DrawScatterPlot(canvasReference1, 1080, 720, t, 1001, iL, 1001);
+    DrawScatterPlot(canvasReference1, 2160, 1080, t, n, iL, n);
     size_t length1;
     double *pngdata1 = ConvertToPNG(&length1, canvasReference1->image);
-    WriteToFile(pngdata1, length1, "inductor current.png");
+    WriteToFile(pngdata1, length1, "inductor current.png");  //The graph for iL vs t will be saved as inductor current.png
     DeleteImage(canvasReference1->image);
 
-	RGBABitmapImageReference *canvasReference2 = CreateRGBABitmapImageReference();
-	DrawScatterPlot(canvasReference2, 1080, 720, t, 1001, Vc, 1001);
+    RGBABitmapImageReference *canvasReference2 = CreateRGBABitmapImageReference();
+    DrawScatterPlot(canvasReference2, 2160, 1080, t, n, Vc, n);
     size_t length2;
     double *pngdata2 = ConvertToPNG(&length2, canvasReference2->image);
-    WriteToFile(pngdata2, length2, "capacitor voltage.png");
+    WriteToFile(pngdata2, length2, "capacitor voltage.png");  //The graph for Vc vs t will be saved as capacitor voltage.png
     DeleteImage(canvasReference2->image);
-	return 0;
+    return 0;
 }
-
-
