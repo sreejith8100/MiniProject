@@ -1,0 +1,4 @@
+<h1> Read this document before using the code </h1>
+This project uses an open source library called pbPlots for plotting 2-D graphs using C programming. To read more about pbPlots, <a href = https://github.com/InductiveComputerScience/pbPlots> click here</a>.
+To use the code, either clone the repository using git clone, or copy the code from each file and create a new project in codeblocks or any other IDEs. There is a makefile already created and if any changes are made to the names of the file, please update those names in the makefile too.
+The main code is in the file called <a href = https://github.com/sreejith8100/MiniProject/blob/main/example1.c >example1.c</a>. It still has some flaws and is not completely working. But try changing the values of h and see how the output looks for 1msec. There are some further instructions in the code itself as comments.
