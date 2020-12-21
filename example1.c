@@ -117,15 +117,65 @@ int main(){
             cycleNumber += 1;
         }
 
+        ScatterPlotSeries *series1 = GetDefaultScatterPlotSeriesSettings();
+        series1->xs = t;
+        series1->xsLength = n;
+        series1->ys = iL;
+        series1->ysLength = n;
+        series1->linearInterpolation = true;
+        series1->lineType = L"solid";
+        series1->lineTypeLength = wcslen(series1->lineType);
+        series1->lineThickness = 2;
+        series1->color = GetBlack();
+        ScatterPlotSettings *settings1 = GetDefaultScatterPlotSettings();
+        settings1->width = 2160;
+        settings1->height = 1080;
+        settings1->autoBoundaries = true;
+        settings1->autoPadding = true;
+        settings1->title = L"Inductor current vs time";
+        settings1->titleLength = wcslen(settings1->title);
+        settings1->xLabel = L"iL (Amperes)";
+        settings1->xLabelLength = wcslen(settings1->xLabel);
+        settings1->yLabel = L"t (msec)";
+        settings1->yLabelLength = wcslen(settings1->yLabel);
+        ScatterPlotSeries *s1 [] = {series1};
+        settings1->scatterPlotSeries = s1;
+        settings1->scatterPlotSeriesLength = 1;
+
         RGBABitmapImageReference *canvasReference1 = CreateRGBABitmapImageReference();
-        DrawScatterPlot(canvasReference1, 2160, 1080, t, n, iL, n);
+        DrawScatterPlotFromSettings(canvasReference1, settings1);
         size_t length1;
         double *pngdata1 = ConvertToPNG(&length1, canvasReference1->image);
         WriteToFile(pngdata1, length1, "inductor current.png");
         DeleteImage(canvasReference1->image);
 
+        ScatterPlotSeries *series2 = GetDefaultScatterPlotSeriesSettings();
+        series2->xs = t;
+        series2->xsLength = n;
+        series2->ys = Vc;
+        series2->ysLength = n;
+        series2->linearInterpolation = true;
+        series2->lineType = L"solid";
+        series2->lineTypeLength = wcslen(series2->lineType);
+        series2->lineThickness = 2;
+        series2->color = GetBlack();
+        ScatterPlotSettings *settings2 = GetDefaultScatterPlotSettings();
+        settings2->width = 2160;
+        settings2->height = 1080;
+        settings2->autoBoundaries = true;
+        settings2->autoPadding = true;
+        settings2->title = L"Capacitor Voltage(Output Voltage) vs time";
+        settings2->titleLength = wcslen(settings2->title);
+        settings2->xLabel = L"Vc (Volts)";
+        settings2->xLabelLength = wcslen(settings2->xLabel);
+        settings2->yLabel = L"t (msec)";
+        settings2->yLabelLength = wcslen(settings2->yLabel);
+        ScatterPlotSeries *s2 [] = {series2};
+        settings2->scatterPlotSeries = s2;
+        settings2->scatterPlotSeriesLength = 1;
+
         RGBABitmapImageReference *canvasReference2 = CreateRGBABitmapImageReference();
-        DrawScatterPlot(canvasReference2, 2160, 1080, t, n, Vc, n);
+        DrawScatterPlotFromSettings(canvasReference2, settings2);
         size_t length2;
         double *pngdata2 = ConvertToPNG(&length2, canvasReference2->image);
         WriteToFile(pngdata2, length2, "capacitor voltage.png");
