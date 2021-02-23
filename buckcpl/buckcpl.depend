@@ -1,0 +1,25 @@
+# depslib dependency file v1.0
+1611916012 source:c:\users\user\desktop\buckcpl\pbplots.c
+	"pbPlots.h"
+
+1611916038 c:\users\user\desktop\buckcpl\pbplots.h
+	<stdlib.h>
+	<stdbool.h>
+	<math.h>
+	<string.h>
+	<wchar.h>
+
+1611916026 source:c:\users\user\desktop\buckcpl\supportlib.c
+	"supportLib.h"
+
+1611916055 c:\users\user\desktop\buckcpl\supportlib.h
+	<stdlib.h>
+	<stdio.h>
+
+1612012211 source:c:\users\user\desktop\buckcpl\example1.c
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	"pbPlots.h"
+	"supportLib.h"
+
