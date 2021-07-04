@@ -4,10 +4,11 @@
 #include "pbPlots.h"
 #include "supportLib.h"
 double f(double x1, double x2);
-double gOn(double x1);
+double gOn(double x1, int Vin);
 double gOff(double x1);
-double R, L, C, d, frequency, Vin, h = 0.000001;//Input Data
-int continueVar;
+void rootLocus(double a, double b, double c);
+double R, L, C, d, frequency, Vref, h = 0.00005, counter = 0;//Input Data
+int continueVar, points = 24, Vin;
 
 double f(double x1,double x2){
     double fx;
@@ -15,7 +16,7 @@ double f(double x1,double x2){
     return fx;
 }
 
-double gOn(double x1){
+double gOn(double x1, int Vin){
     double gx;
     gx = (Vin - x1)/L;
     return gx;
@@ -27,7 +28,52 @@ double gOff(double x1){
     return gx;
 }
 
+void rootLocus(double a, double b, double c){
+    int k;
+    FILE *fptr;
+    fptr = fopen("C:\\Users\\User\\Desktop\\buckcpl\\rootLocus.txt","w");
+    if(fptr == NULL){
+        printf("File Not found!");
+        return;
+    }
+    for(k = 0; k < 5 ; k++){
+        double discriminant, real1, real2, imag1, imag2;
+        c = c * (1 + (k*24));
+        discriminant = (b * b) - (4 * a * c);
+
+        // condition for real and different roots
+        if (discriminant > 0) {
+            real1 = (-b + sqrt(discriminant)) / (2 * a);
+            imag1 = 0.0;
+            real2 = (-b - sqrt(discriminant)) / (2 * a);
+            imag2 = 0.0;
+            fprintf(fptr,"%.2lf\t\t%.2lf\t\t%.2lf\t\t%.2lf\n", real1, imag1, real2, imag2);
+        }
+
+        // condition for real and equal roots
+        else if (discriminant == 0) {
+            real1 = -b / (2 * a);
+            imag1 = 0.0;
+            real2 = real1;
+            imag2 = 0.0;
+            fprintf(fptr,"%.2lf\t\t%.2lf\t\t%.2lf\t\t%.2lf\n", real1, imag1, real2, imag2);
+        }
+
+        // if roots are not real
+        else {
+            real1 = -b / (2 * a);
+            imag1 = sqrt(-discriminant) / (2 * a);
+            real2 = real1;
+            imag2 = -imag1;
+            fprintf(fptr,"%.2lf\t\t%.2lf\t\t%.2lf\t\t%.2lf\n", real1, imag1, real2, imag2);
+        }
+    }
+    return;
+}
+
 int main(){
+    double X[points], Y[points];
+    double a, b, c;
 	while(1){
         printf("Do you want to proceed?\nPress 1 to continue or press 0 to stop.\n");
         scanf("%d", &continueVar);
@@ -41,181 +87,143 @@ int main(){
             continue;
         }
         else{
-        double time, T, timeStart = 0, timeEnd = 0.0002, iLm, iLM, VcM, Vcm; //the graph to be plotted is from 0 msec to 0.2 msec. Change this value to plot graphs for different time intervals
-        int tempVar, count = 1, cycleNumber = 0, i;
-        int n = (timeEnd/h) + 1;
-        //Variables for Runge-Kutta Method.
-        double x1, x2, f1, f2, f3, f4, g1, g2, g3, g4;
-        double iL [n]; //Array of the inductor current values to be plotted.
-        double Vc [n]; //Capacitor voltage values.
-        double t [n]; //Time values (for time axis).
-        printf("-------------Enter the following data----------------\n");
-        printf("Input voltage, Vin: ");
-        scanf("%lf", &Vin);
-        printf("Load Resistance, R: ");
-        scanf("%lf", &R);
-        printf("Inductance, L: ");
-        scanf("%lf", &L);
-        printf("Capacitance, C: ");
-        scanf("%lf", &C);
-        printf("Duty ratio, d: ");
-        scanf("%lf", &d);
-        printf("Frequency, f: ");
-        scanf("%lf", &frequency);
-        if(Vin<=0 || R<=0 || L<=0 || d<=0 || f<=0){
-            printf("\nWrong inputs.\nPlease check the values entered and try again.\n");
-            printf("---------------------------------------------------------\n");
-            continue;
-        }
-        T = 1.0/frequency;
-        x1 = (d*Vin);
-        x2 = (x1/R)-(x1*(1-d)/(2.0*L*frequency));
-        Vc [0] = x1;
-        iL [0] = x2;
-        t[0] = timeStart;
-        time = timeStart + h;
-
-        while(time <= timeEnd){
-            tempVar = 0;
-            while(tempVar < T/h){
-                //When the switch is ON.
-                if(time <= (cycleNumber*T) + d*T){
-                    f1 = h*f(x1, x2);
-                    g1 = h*gOn(x1);
-                    f2 = h*f((x1 + f1/2), (x2 + g1/2));
-                    g2 = h*gOn(x1 + f1/2);
-                    f3 = h*f((x1 + f2/2), (x2 + g2/2));
-                    g3 = h*gOn(x1 + f2/2);
-                    f4 = h*f((x1 + f3), (x2 + g3));
-                    g4 = h*gOn(x1 + f3);
-                    x1 += (1.0/6.0)*(f1 + 2*f2 + 2*f3 + f4);
-                    x2 += (1.0/6.0)*(g1 + 2*g2 + 2*g3 + g4);
+                printf("-------------Enter the following data----------------\n");
+                printf("Load Resistance, R: ");
+                scanf("%lf", &R);
+                printf("Inductance, L: ");
+                scanf("%lf", &L);
+                printf("Capacitance, C: ");
+                scanf("%lf", &C);
+                printf("Duty ratio, d: ");
+                scanf("%lf", &d);
+                printf("Frequency, f: ");
+                scanf("%lf", &frequency);
+                printf("Reference Voltage, Vref: ");
+                scanf("%lf", &Vref);
+                if(Vref <= 0 || R <= 0 || L <= 0 || d < 0 || d > 1 || f <= 0){
+                    printf("\nPlease check the values entered and try again.\n");
+                    printf("---------------------------------------------------------\n");
+                    continue;
                 }
-                //When the switch is OFF.
-                else{
-                    f1 = h*f(x1, x2);
-                    g1 = h*gOff(x1);
-                    f2 = h*f((x1 + f1/2), (x2 + g1/2));
-                    g2 = h*gOff(x1 + f1/2);
-                    f3 = h*f((x1 + f2/2), (x2 + g2/2));
-                    g3 = h*gOff(x1 + f2/2);
-                    f4 = h*f((x1 + f3), (x2 + g3));
-                    g4 = h*gOff(x1 + f3);
-                    x1 += (1.0/6.0)*(f1 + 2*f2 + 2*f3 + f4);
-                    x2 += (1.0/6.0)*(g1 + 2*g2 + 2*g3 + g4);
+                for( Vin = 0; Vin <= points; Vin++){
+                        if(Vin == 0 || X[Vin - 1] <= Vref){
+                            double time, T, timeEnd = 0.12, VcM, Vcm; //the graph to be plotted is from 0 sec to 1 sec. Change this value to plot graphs for different time intervals
+                            int tempVar, count = 0, cycleNumber = 0, i, iter = 2300 ;
+                            int n = (timeEnd/h)+1 - iter;
+                            //Variables for Runge-Kutta Method.
+                            double x1, x2, f1, f2, f3, f4, g1, g2, g3, g4;
+                            double Vc [n]; // Capacitor voltage values.
+                            T = 1.0/frequency;
+                            x1 = (d*Vin);
+                            x2 = (x1/R)-(x1*(1-d)/(2.0*L*frequency));
+                            time = h;
+                            while(time <= timeEnd){
+                                tempVar = 0;
+                                while(tempVar < T/h){
+                                    // When the switch is ON.
+                                    if(time <= (cycleNumber*T) + d*T){
+                                        f1 = h*f(x1, x2);
+                                        g1 = h*gOn(x1, Vin);
+                                        f2 = h*f((x1 + f1/2), (x2 + g1/2));
+                                        g2 = h*gOn(x1 + f1/2, Vin);
+                                        f3 = h*f((x1 + f2/2), (x2 + g2/2));
+                                        g3 = h*gOn(x1 + f2/2, Vin);
+                                        f4 = h*f((x1 + f3), (x2 + g3));
+                                        g4 = h*gOn(x1 + f3, Vin);
+                                        x1 += (1.0/6.0)*(f1 + 2*f2 + 2*f3 + f4);
+                                        x2 += (1.0/6.0)*(g1 + 2*g2 + 2*g3 + g4);
+                                    }
+                                    //When the switch is OFF.
+                                    else{
+                                        f1 = h*f(x1, x2);
+                                        g1 = h*gOff(x1);
+                                        f2 = h*f((x1 + f1/2), (x2 + g1/2));
+                                        g2 = h*gOff(x1 + f1/2);
+                                        f3 = h*f((x1 + f2/2), (x2 + g2/2));
+                                        g3 = h*gOff(x1 + f2/2);
+                                        f4 = h*f((x1 + f3), (x2 + g3));
+                                        g4 = h*gOff(x1 + f3);
+                                        x1 += (1.0/6.0)*(f1 + 2*f2 + 2*f3 + f4);
+                                        x2 += (1.0/6.0)*(g1 + 2*g2 + 2*g3 + g4);
+                                    }
+                                    if(counter >= iter){
+                                        Vc[count - iter] = floor(10000*x1)/10000;
+                                    }
+                                    time += h;
+                                    count += 1;
+                                    counter +=1;
+                                    if(time > timeEnd){
+                                        break;
+                                    }
+                                    tempVar += 1;
+                                }
+                                cycleNumber += 1;
+                            }
+                            VcM = Vc[0];
+                            Vcm = Vc[0];
+                            for(i=1; i<n; i++)
+                            {
+                                if(Vc[i]>VcM)
+                                {
+                                    VcM = Vc[i];
+                                }
+                                if(Vc[i]<Vcm)
+                                {
+                                    Vcm = Vc[i];
+                                }
+                            }
+                            X[Vin] = (Vcm + VcM)/2;
+                            Y[Vin] = X[Vin]/R;
+                        }
+                        else{
+                            X[Vin] = Vin;
+                            Y[Vin] = (Vref*Vref)/(X[Vin]*R);
+                        }
+                    }
+                    printf("Voltage (in Volts) \t | Current (in Amperes)\n");
+                    printf("----------------------------------------------- \n");
+                    for(int i = 0;i<points;i++){
+                        printf("%lf \t \t | %lf \n",X[i],Y[i]);
+                    }
+                    printf("----------------------------------------------- \n");
+                    ScatterPlotSeries *series = GetDefaultScatterPlotSeriesSettings();
+                    series->xs = X;
+                    series->xsLength = points;
+                    series->ys = Y;
+                    series->ysLength = points;
+                    series->linearInterpolation = true;
+                    series->lineType = L"solid";
+                    series->lineTypeLength = wcslen(series->lineType);
+                    series->lineThickness = 2;
+                    series->color = GetBlack();
+                    ScatterPlotSettings *settings = GetDefaultScatterPlotSettings();
+                    settings->width = 2160;
+                    settings->height = 1080;
+                    settings->autoBoundaries = true;
+                    settings->autoPadding = true;
+                    settings->title = L"Voltage vs Current of cascaded buck converters";
+                    settings->titleLength = wcslen(settings->title);
+                    settings->xLabel = L"Current(Amperes)";
+                    settings->xLabelLength = wcslen(settings->xLabel);
+                    settings->yLabel = L"Voltage (Volts)";
+                    settings->yLabelLength = wcslen(settings->yLabel);
+                    ScatterPlotSeries *s [] = {series};
+                    settings->scatterPlotSeries = s;
+                    settings->scatterPlotSeriesLength = 1;
+
+                    RGBABitmapImageReference *canvasReference = CreateRGBABitmapImageReference();
+                    DrawScatterPlotFromSettings(canvasReference, settings);
+                    size_t length;
+                    double *pngdata = ConvertToPNG(&length, canvasReference->image);
+                    WriteToFile(pngdata, length, "constant power load.png");
+                    DeleteImage(canvasReference->image);
+
+                    printf("The VI graph is saved in a file named constant power load.png \n");
+                    a = 1.0;
+                    b = 1/(1.5*0.0022);
+                    c = 1/(0.000047*0.0022);
+                    rootLocus(a, b, c);
                 }
-                iL[count] = floor(10000*x2)/10000;
-                Vc[count] = floor(10000*x1)/10000;
-                t[count] = floor(10000*time*1000)/10000;
-                time += h;
-                count += 1;
-                if(time > timeEnd){
-                    break;
-                }
-                tempVar += 1;
-            }
-            cycleNumber += 1;
         }
-
-        ScatterPlotSeries *series1 = GetDefaultScatterPlotSeriesSettings();
-        series1->xs = t;
-        series1->xsLength = n;
-        series1->ys = iL;
-        series1->ysLength = n;
-        series1->linearInterpolation = true;
-        series1->lineType = L"solid";
-        series1->lineTypeLength = wcslen(series1->lineType);
-        series1->lineThickness = 2;
-        series1->color = GetBlack();
-        ScatterPlotSettings *settings1 = GetDefaultScatterPlotSettings();
-        settings1->width = 2160;
-        settings1->height = 1080;
-        settings1->autoBoundaries = true;
-        settings1->autoPadding = true;
-        settings1->title = L"Inductor current vs time";
-        settings1->titleLength = wcslen(settings1->title);
-        settings1->xLabel = L"iL (Amperes)";
-        settings1->xLabelLength = wcslen(settings1->xLabel);
-        settings1->yLabel = L"t (msec)";
-        settings1->yLabelLength = wcslen(settings1->yLabel);
-        ScatterPlotSeries *s1 [] = {series1};
-        settings1->scatterPlotSeries = s1;
-        settings1->scatterPlotSeriesLength = 1;
-
-        RGBABitmapImageReference *canvasReference1 = CreateRGBABitmapImageReference();
-        DrawScatterPlotFromSettings(canvasReference1, settings1);
-        size_t length1;
-        double *pngdata1 = ConvertToPNG(&length1, canvasReference1->image);
-        WriteToFile(pngdata1, length1, "inductor current.png");
-        DeleteImage(canvasReference1->image);
-
-        ScatterPlotSeries *series2 = GetDefaultScatterPlotSeriesSettings();
-        series2->xs = t;
-        series2->xsLength = n;
-        series2->ys = Vc;
-        series2->ysLength = n;
-        series2->linearInterpolation = true;
-        series2->lineType = L"solid";
-        series2->lineTypeLength = wcslen(series2->lineType);
-        series2->lineThickness = 2;
-        series2->color = GetBlack();
-        ScatterPlotSettings *settings2 = GetDefaultScatterPlotSettings();
-        settings2->width = 2160;
-        settings2->height = 1080;
-        settings2->autoBoundaries = true;
-        settings2->autoPadding = true;
-        settings2->title = L"Capacitor Voltage(Output Voltage) vs time";
-        settings2->titleLength = wcslen(settings2->title);
-        settings2->xLabel = L"Vc (Volts)";
-        settings2->xLabelLength = wcslen(settings2->xLabel);
-        settings2->yLabel = L"t (msec)";
-        settings2->yLabelLength = wcslen(settings2->yLabel);
-        ScatterPlotSeries *s2 [] = {series2};
-        settings2->scatterPlotSeries = s2;
-        settings2->scatterPlotSeriesLength = 1;
-
-        RGBABitmapImageReference *canvasReference2 = CreateRGBABitmapImageReference();
-        DrawScatterPlotFromSettings(canvasReference2, settings2);
-        size_t length2;
-        double *pngdata2 = ConvertToPNG(&length2, canvasReference2->image);
-        WriteToFile(pngdata2, length2, "capacitor voltage.png");
-        DeleteImage(canvasReference2->image);
-
-        //Finding Min and Max values.
-        VcM = Vc[0];
-        Vcm = Vc[0];
-        iLM = iL[0];
-        iLm = iL[0];
-
-        for(i=1; i<n; i++)
-        {
-            if(Vc[i]>VcM)
-            {
-                VcM = Vc[i];
-            }
-            if(iL[i]>iLM)
-            {
-                iLM = iL[i];
-            }
-            if(Vc[i]<Vcm)
-            {
-                Vcm = Vc[i];
-            }
-            if(iL[i]<iLm)
-            {
-                iLm = iL[i];
-            }
-        }
-        printf("\n-----------------------Results---------------------------\n");
-        printf("Vc max: %lf\t\t", VcM);
-        printf("Vc min: %lf\n", Vcm);
-        printf("iL max: %lf\t\t", iLM);
-        printf("iL min: %lf\n", iLm);
-        printf("\nCapacitor voltage(Output Voltage) vs time graph is saved as capacitor voltage.png\nInductor Current vs time graph is saved as inductor current.png\n");
-        printf("Close this terminal and then view the graphs.\n");
-        printf("\n---------------------------------------------------------\n");
-
-        }
-	}
     return 0;
 }
